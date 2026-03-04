@@ -2,7 +2,7 @@
  * api.js – API client for the Numerical ODE Solver backend.
  */
 
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "https://ode-solver-backend.onrender.com/api";
 
 /**
  * Solve an ODE using a single method (Euler or RK4).
