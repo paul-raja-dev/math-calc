@@ -1,9 +1,28 @@
 """Exact (symbolic) ODE solver using SymPy dsolve."""
 
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import List, Optional, Tuple
 
 import sympy
-from sympy import Symbol, Function, Eq, sympify, lambdify, dsolve
+from sympy import (
+    Symbol, Function, Eq, sympify, lambdify, dsolve,
+    sin, cos, tan, exp, log, sqrt, Abs,
+    asin, acos, atan, sinh, cosh, tanh,
+    sec, csc, cot,
+    pi, E as SymE,
+    ceiling, floor,
+)
+
+# Timeout (seconds) for SymPy's dsolve – prevents hangs on complex ODEs
+DSOLVE_TIMEOUT = 10
+
+# Reusable thread pool for dsolve calls
+_executor = ThreadPoolExecutor(max_workers=2)
+
+
+def _run_dsolve(ode, y_func, x_sym):
+    """Run dsolve in an isolated call (for use with timeout)."""
+    return dsolve(ode, y_func)
 
 
 def exact_solve(
@@ -28,15 +47,34 @@ def exact_solve(
     x = Symbol("x")
     y = Function("y")
 
+    # Map common function names so expressions like "sin(x) + y" parse correctly
+    local_dict = {
+        "x": x, "y": y(x),
+        "sin": sin, "cos": cos, "tan": tan,
+        "sec": sec, "csc": csc, "cot": cot,
+        "asin": asin, "acos": acos, "atan": atan,
+        "arcsin": asin, "arccos": acos, "arctan": atan,
+        "sinh": sinh, "cosh": cosh, "tanh": tanh,
+        "exp": exp, "log": log, "ln": log,
+        "sqrt": sqrt, "abs": Abs,
+        "ceil": ceiling, "floor": floor,
+        "pi": pi, "e": SymE, "E": SymE,
+    }
+
     try:
         # Parse RHS expression
-        rhs = sympify(equation_str, locals={"x": x, "y": y(x)})
+        rhs = sympify(equation_str, locals=local_dict)
 
         # Formulate ODE: y'(x) = rhs
         ode = Eq(y(x).diff(x), rhs)
 
-        # Solve symbolically
-        general_solution = dsolve(ode, y(x))
+        # Solve symbolically with a timeout to avoid long hangs
+        future = _executor.submit(_run_dsolve, ode, y(x), x)
+        try:
+            general_solution = future.result(timeout=DSOLVE_TIMEOUT)
+        except (FuturesTimeoutError, Exception):
+            future.cancel()
+            return None
 
         # Apply initial condition y(x0) = y0
         constants = general_solution.free_symbols - {x}
@@ -71,5 +109,5 @@ def exact_solve(
         return results
 
     except Exception:
-        # If sympy cannot solve the ODE, return None
+        # If sympy cannot solve the ODE (or times out), return None
         return None
