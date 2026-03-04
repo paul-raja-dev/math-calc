@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Numerical ODE Solver – Solve first-order ODEs using Euler and Runge-Kutta methods with interactive visualization." />
+  <title>Numerical ODE Solver</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Background glow blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+
+  <header>
+    <div class="logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="url(#grad)" stroke-width="2.5" fill="none"/>
+        <path d="M8 22 C12 10, 20 10, 24 22" stroke="url(#grad)" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M8 20 C14 6, 18 6, 24 20" stroke="rgba(168,130,255,0.4)" stroke-width="1.5" fill="none" stroke-dasharray="3 3" stroke-linecap="round"/>
+        <defs><linearGradient id="grad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#a78bfa"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+      </svg>
+      <h1>Numerical ODE Solver</h1>
+    </div>
+    <p class="subtitle">Solve <strong>dy/dx = f(x, y)</strong> using Euler &amp; Runge-Kutta methods</p>
+  </header>
+
+  <main>
+    <!-- ─── Input Card ─── -->
+    <section class="card input-card" id="input-section">
+      <h2>Configure Problem</h2>
+
+      <form id="solver-form" autocomplete="off">
+        <div class="form-group full-width">
+          <label for="equation">Equation&nbsp;<span class="hint">dy/dx =</span></label>
+          <input type="text" id="equation" placeholder="x + y" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="x0">x₀</label>
+            <input type="number" id="x0" value="0" step="any" required />
+          </div>
+          <div class="form-group">
+            <label for="y0">y₀</label>
+            <input type="number" id="y0" value="1" step="any" required />
+          </div>
+          <div class="form-group">
+            <label for="h">Step size (h)</label>
+            <input type="number" id="h" value="0.1" step="any" min="0.0001" required />
+          </div>
+          <div class="form-group">
+            <label for="steps">Steps</label>
+            <input type="number" id="steps" value="10" min="1" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="method">Method</label>
+            <select id="method">
+              <option value="euler">Euler</option>
+              <option value="rk4">Runge-Kutta 4</option>
+              <option value="compare">Compare Both</option>
+            </select>
+          </div>
+          <div class="form-group btn-group">
+            <button type="submit" id="solve-btn">
+              <span class="btn-text">Solve</span>
+              <span class="btn-loader" hidden>
+                <span class="spinner"></span>Solving…
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div id="error-msg" class="error-msg" hidden></div>
+    </section>
+
+    <!-- ─── Results ─── -->
+    <section class="card results-card" id="results-section" hidden>
+      <h2>Results</h2>
+
+      <!-- Chart -->
+      <div class="chart-wrapper">
+        <canvas id="solution-chart"></canvas>
+      </div>
+
+      <!-- Table(s) -->
+      <div id="tables-container"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built with <a href="https://fastapi.tiangolo.com" target="_blank">FastAPI</a>, <a href="https://www.sympy.org" target="_blank">SymPy</a> &amp; <a href="https://www.chartjs.org" target="_blank">Chart.js</a></p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
